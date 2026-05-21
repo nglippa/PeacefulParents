@@ -67,7 +67,27 @@ export type TurnItem = {
   lastCompletedAt?: string;
 };
 
-export type SupplyCategory = "diapers" | "wipes" | "formula" | "food" | "household";
+export type SupplyCategory =
+  | "diapers"
+  | "wipes"
+  | "formula"
+  | "baby-food"
+  | "bottles"
+  | "pacifiers"
+  | "medicine"
+  | "household"
+  | "snacks";
+export type SupplyStatus = "normal" | "running-low" | "out";
+export type PreferredRetailer = "none" | "amazon" | "walmart" | "target";
+export type PreferredReorderDay =
+  | "any"
+  | "monday"
+  | "tuesday"
+  | "wednesday"
+  | "thursday"
+  | "friday"
+  | "saturday"
+  | "sunday";
 
 export type SupplyItem = {
   id: string;
@@ -75,6 +95,15 @@ export type SupplyItem = {
   category: SupplyCategory;
   quantity: number;
   threshold: number;
+  status: SupplyStatus;
+  preferredRetailer: PreferredRetailer;
+  notes?: string;
+  productLink?: string;
+  restockFrequencyDays: number;
+  preferredReorderDay: PreferredReorderDay;
+  lastRestockedAt?: string;
+  reminderEnabled: boolean;
+  autoReorderEnabled: boolean;
   checked: boolean;
 };
 

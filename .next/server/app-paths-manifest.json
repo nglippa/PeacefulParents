@@ -1,11 +1,6 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
   "/page": "app/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
   "/audio/page": "app/audio/page.js",
-  "/supplies/page": "app/supplies/page.js",
-  "/tracker/page": "app/tracker/page.js",
-  "/tasks/page": "app/tasks/page.js",
-  "/settings/page": "app/settings/page.js",
-  "/turns/page": "app/turns/page.js"
+  "/supplies/page": "app/supplies/page.js"
 }

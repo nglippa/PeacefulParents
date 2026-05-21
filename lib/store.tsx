@@ -9,9 +9,12 @@ import type {
   PeacefulParentsState,
   AmbientSoundSettings,
   ParentId,
+  PreferredReorderDay,
+  PreferredRetailer,
   RoutineSettings,
   SupplyInput,
   SupplyItem,
+  SupplyStatus,
   Task,
   TaskInput,
   TurnInput,
@@ -71,6 +74,10 @@ function hoursAgo(hours: number) {
 
 function hoursFromNow(hours: number) {
   return new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+}
+
+function daysAgo(days: number) {
+  return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 }
 
 export function createInitialState(): PeacefulParentsState {
@@ -157,11 +164,91 @@ export function createInitialState(): PeacefulParentsState {
       { id: "turn-4", title: "Bedtime", currentCaregiverId: "parent-a", completedCount: 8 }
     ],
     supplies: [
-      { id: "supply-1", name: "Size 3 diapers", category: "diapers", quantity: 12, threshold: 20, checked: false },
-      { id: "supply-2", name: "Sensitive wipes", category: "wipes", quantity: 2, threshold: 2, checked: false },
-      { id: "supply-3", name: "Formula", category: "formula", quantity: 1, threshold: 2, checked: false },
-      { id: "supply-4", name: "Bananas", category: "food", quantity: 5, threshold: 3, checked: false },
-      { id: "supply-5", name: "Dish tabs", category: "household", quantity: 9, threshold: 8, checked: true }
+      {
+        id: "supply-1",
+        name: "Size 3 diapers",
+        category: "diapers",
+        quantity: 12,
+        threshold: 20,
+        status: "running-low",
+        preferredRetailer: "target",
+        notes: "Overnight box is in the closet.",
+        productLink: "",
+        restockFrequencyDays: 14,
+        preferredReorderDay: "sunday",
+        lastRestockedAt: daysAgo(10),
+        reminderEnabled: true,
+        autoReorderEnabled: false,
+        checked: false
+      },
+      {
+        id: "supply-2",
+        name: "Sensitive wipes",
+        category: "wipes",
+        quantity: 2,
+        threshold: 2,
+        status: "running-low",
+        preferredRetailer: "amazon",
+        notes: "Fragrance-free only.",
+        productLink: "",
+        restockFrequencyDays: 12,
+        preferredReorderDay: "wednesday",
+        lastRestockedAt: daysAgo(9),
+        reminderEnabled: true,
+        autoReorderEnabled: false,
+        checked: false
+      },
+      {
+        id: "supply-3",
+        name: "Formula",
+        category: "formula",
+        quantity: 1,
+        threshold: 2,
+        status: "running-low",
+        preferredRetailer: "walmart",
+        notes: "Keep one unopened backup can.",
+        productLink: "",
+        restockFrequencyDays: 7,
+        preferredReorderDay: "monday",
+        lastRestockedAt: daysAgo(6),
+        reminderEnabled: true,
+        autoReorderEnabled: false,
+        checked: false
+      },
+      {
+        id: "supply-4",
+        name: "Banana pouches",
+        category: "baby-food",
+        quantity: 5,
+        threshold: 3,
+        status: "normal",
+        preferredRetailer: "target",
+        notes: "",
+        productLink: "",
+        restockFrequencyDays: 10,
+        preferredReorderDay: "friday",
+        lastRestockedAt: daysAgo(3),
+        reminderEnabled: true,
+        autoReorderEnabled: false,
+        checked: false
+      },
+      {
+        id: "supply-5",
+        name: "Dish tabs",
+        category: "household",
+        quantity: 9,
+        threshold: 8,
+        status: "normal",
+        preferredRetailer: "none",
+        notes: "",
+        productLink: "",
+        restockFrequencyDays: 30,
+        preferredReorderDay: "any",
+        lastRestockedAt: daysAgo(11),
+        reminderEnabled: false,
+        autoReorderEnabled: false,
+        checked: true
+      }
     ]
   };
 }
@@ -177,8 +264,86 @@ function hydrateState(saved: PeacefulParentsState): PeacefulParentsState {
     ...defaults,
     ...saved,
     routines: { ...defaults.routines, ...saved.routines },
-    ambientSound: { ...defaults.ambientSound, ...saved.ambientSound }
+    ambientSound: { ...defaults.ambientSound, ...saved.ambientSound },
+    supplies: (saved.supplies ?? defaults.supplies).map(normalizeSupply)
   };
+}
+
+function normalizeSupply(supply: Partial<SupplyItem> & Pick<SupplyItem, "id" | "name">): SupplyItem {
+  const quantity = Number(supply.quantity ?? 0);
+  const threshold = Number(supply.threshold ?? 1);
+  const savedCategory = supply.category as unknown;
+  const category = savedCategory === "food" ? "baby-food" : savedCategory;
+  const status = supply.status ?? getSupplyStatus(quantity, threshold);
+  const preferredRetailer = supply.preferredRetailer ?? "none";
+  const preferredReorderDay = supply.preferredReorderDay ?? "any";
+
+  return {
+    id: supply.id,
+    name: supply.name,
+    category: isSupplyCategory(category) ? category : "household",
+    quantity,
+    threshold,
+    status: isSupplyStatus(status) ? status : getSupplyStatus(quantity, threshold),
+    preferredRetailer: isPreferredRetailer(preferredRetailer) ? preferredRetailer : "none",
+    notes: supply.notes ?? "",
+    productLink: supply.productLink ?? "",
+    restockFrequencyDays: Math.max(0, Number(supply.restockFrequencyDays ?? getDefaultRestockFrequency(category))),
+    preferredReorderDay: isPreferredReorderDay(preferredReorderDay) ? preferredReorderDay : "any",
+    lastRestockedAt: supply.lastRestockedAt ?? new Date().toISOString(),
+    reminderEnabled: supply.reminderEnabled ?? true,
+    autoReorderEnabled: false,
+    checked: Boolean(supply.checked)
+  };
+}
+
+function getDefaultRestockFrequency(category: unknown) {
+  if (category === "formula") return 7;
+  if (category === "diapers") return 14;
+  if (category === "wipes") return 12;
+  if (category === "household") return 30;
+  return 10;
+}
+
+function getSupplyStatus(quantity: number, threshold: number): SupplyStatus {
+  if (quantity <= 0) return "out";
+  if (quantity <= threshold) return "running-low";
+  return "normal";
+}
+
+function isSupplyCategory(category: unknown): category is SupplyItem["category"] {
+  return (
+    category === "diapers" ||
+    category === "wipes" ||
+    category === "formula" ||
+    category === "baby-food" ||
+    category === "bottles" ||
+    category === "pacifiers" ||
+    category === "medicine" ||
+    category === "household" ||
+    category === "snacks"
+  );
+}
+
+function isSupplyStatus(status: unknown): status is SupplyStatus {
+  return status === "normal" || status === "running-low" || status === "out";
+}
+
+function isPreferredRetailer(retailer: unknown): retailer is PreferredRetailer {
+  return retailer === "none" || retailer === "amazon" || retailer === "walmart" || retailer === "target";
+}
+
+function isPreferredReorderDay(day: unknown): day is PreferredReorderDay {
+  return (
+    day === "any" ||
+    day === "monday" ||
+    day === "tuesday" ||
+    day === "wednesday" ||
+    day === "thursday" ||
+    day === "friday" ||
+    day === "saturday" ||
+    day === "sunday"
+  );
 }
 
 export function PeacefulParentsProvider({ children }: { children: React.ReactNode }) {
@@ -262,11 +427,14 @@ export function PeacefulParentsProvider({ children }: { children: React.ReactNod
           )
         })),
       addSupply: (input) =>
-        setState((current) => ({ ...current, supplies: [{ ...input, id: id("supply"), checked: false }, ...current.supplies] })),
+        setState((current) => ({
+          ...current,
+          supplies: [normalizeSupply({ ...input, id: id("supply"), checked: false }), ...current.supplies]
+        })),
       updateSupply: (supplyId, input) =>
         setState((current) => ({
           ...current,
-          supplies: current.supplies.map((supply) => (supply.id === supplyId ? { ...supply, ...input } : supply))
+          supplies: current.supplies.map((supply) => (supply.id === supplyId ? normalizeSupply({ ...supply, ...input }) : supply))
         })),
       deleteSupply: (supplyId) =>
         setState((current) => ({ ...current, supplies: current.supplies.filter((supply) => supply.id !== supplyId) })),

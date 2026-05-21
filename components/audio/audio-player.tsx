@@ -125,7 +125,7 @@ export function AudioPlayer() {
     <div className="grid gap-5">
       <audio ref={audioRef} preload="none" loop onError={() => wantsPlaybackRef.current && startFallback(currentTrack)} />
 
-      <section className="pp-card relative overflow-hidden rounded-[2rem] p-5 text-[#fff7e8]">
+      <section className="relative overflow-hidden rounded-[2rem] border border-[rgba(255,247,232,0.12)] bg-[linear-gradient(145deg,#33495a_0%,#263947_48%,#202d36_100%)] p-5 text-[#fff7e8] shadow-soft backdrop-blur-2xl dark:border-[rgba(255,247,232,0.1)] dark:bg-[linear-gradient(145deg,#2d4352_0%,#23333e_52%,#1b252d_100%)]">
         <div className="absolute -right-16 -top-20 h-56 w-56 rounded-full blur-3xl" style={{ background: `${currentTrack.accent}38` }} />
         <div className="absolute -bottom-24 left-8 h-56 w-56 rounded-full bg-[#d0a36c]/14 blur-3xl" />
         <div className="relative">
@@ -149,12 +149,12 @@ export function AudioPlayer() {
                   <Play size={20} /> Play
                 </Button>
               )}
-              <Button variant="ghost" size="lg" onClick={() => stop()} className="bg-white/8 text-[#fff7e8] hover:bg-white/14">
+              <Button variant="ghost" size="lg" onClick={() => stop()} className="bg-white/10 text-[#fff7e8] hover:bg-white/16">
                 <Square size={18} /> Stop
               </Button>
             </div>
 
-            <div className="rounded-3xl bg-white/9 p-4">
+            <div className="rounded-3xl border border-white/10 bg-white/10 p-4">
               <div className="mb-2 flex items-center justify-between text-sm font-black text-white/75">
                 <span className="flex items-center gap-2">
                   <Volume2 size={16} /> Volume
@@ -188,12 +188,12 @@ export function AudioPlayer() {
                 ))}
               </select>
             </label>
-            <div className="rounded-2xl bg-white/9 px-4 py-3 text-sm font-black text-white/70">
+            <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-black text-white/78">
               {timerMinutes && timerEndsAt ? `Gently stops in ${timeLeft}` : "Continuous until you stop it"}
             </div>
           </div>
 
-          <p className="mt-4 rounded-2xl bg-white/9 p-3 text-sm font-semibold leading-6 text-white/68">
+          <p className="mt-4 rounded-2xl border border-white/10 bg-white/10 p-3 text-sm font-semibold leading-6 text-white/72">
             Audio will play through your current device output, including connected Bluetooth speakers.
           </p>
 
