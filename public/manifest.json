@@ -1,0 +1,18 @@
+{
+  "name": "DadMode",
+  "short_name": "DadMode",
+  "description": "A calm family command center for tired parents.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fff8f0",
+  "theme_color": "#f9735b",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
