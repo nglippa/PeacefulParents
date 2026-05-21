@@ -197,11 +197,7 @@ export function AudioPlayer() {
             Audio will play through your current device output, including connected Bluetooth speakers.
           </p>
 
-          {usingFallback ? (
-            <p className="mt-3 text-xs font-bold text-[#f2dfbb]/80">
-              Placeholder file not available yet, so PeacefulParents is using a local generated preview sound.
-            </p>
-          ) : null}
+          {usingFallback ? <p className="mt-3 text-xs font-bold text-[#f2dfbb]/78">Generated local sound</p> : null}
         </div>
       </section>
 
@@ -287,36 +283,23 @@ function createFallbackSound(track: AudioTrack, volume: number): FallbackSound {
   }
   const context = new AudioContextClass();
   const gain = context.createGain();
-  gain.gain.value = volume * 0.35;
-  gain.connect(context.destination);
+  const softener = context.createBiquadFilter();
+  softener.type = "lowpass";
+  softener.frequency.value = track.tone === "music" ? 1450 : track.id === "white" ? 2600 : 1800;
+  gain.gain.value = 0;
+  gain.connect(softener);
+  softener.connect(context.destination);
+  gain.gain.setTargetAtTime(getTrackVolume(track, volume), context.currentTime, 0.35);
 
   const nodes: AudioNode[] = [];
   const cleanups: Array<() => void> = [];
+  const timers: number[] = [];
 
-  if (track.tone === "noise" || track.tone === "water" || track.tone === "room") {
-    const noise = createNoiseNode(context, track.id);
-    const filter = context.createBiquadFilter();
-    filter.type = "lowpass";
-    filter.frequency.value = track.id === "brown" ? 420 : track.id === "pink" ? 980 : track.tone === "water" ? 1550 : 2200;
-    noise.connect(filter);
-    filter.connect(gain);
-    nodes.push(noise, filter);
-    cleanups.push(() => noise.disconnect());
+  if (track.tone === "music") {
+    createMusicLoop(context, gain, track.id, nodes, cleanups, timers);
+  } else {
+    createAmbientTexture(context, gain, track, nodes, cleanups);
   }
-
-  const frequencies = getFallbackFrequencies(track);
-  frequencies.forEach((frequency, index) => {
-    const oscillator = context.createOscillator();
-    const localGain = context.createGain();
-    oscillator.type = track.tone === "music" ? "sine" : "triangle";
-    oscillator.frequency.value = frequency;
-    localGain.gain.value = track.tone === "music" ? 0.055 / (index + 1) : 0.025 / (index + 1);
-    oscillator.connect(localGain);
-    localGain.connect(gain);
-    oscillator.start();
-    nodes.push(oscillator, localGain);
-    cleanups.push(() => oscillator.stop());
-  });
 
   let stopped = false;
 
@@ -326,12 +309,14 @@ function createFallbackSound(track: AudioTrack, volume: number): FallbackSound {
     stop: () => {
       if (stopped) return;
       stopped = true;
+      timers.forEach((timer) => window.clearInterval(timer));
+      gain.gain.setTargetAtTime(0.0001, context.currentTime, 0.08);
       cleanups.forEach((cleanup) => cleanup());
       nodes.forEach((node) => node.disconnect());
       void context.close();
     },
     setVolume: (nextVolume) => {
-      gain.gain.setTargetAtTime(nextVolume * 0.35, context.currentTime, 0.08);
+      gain.gain.setTargetAtTime(getTrackVolume(track, nextVolume), context.currentTime, 0.12);
     }
   };
 }
@@ -348,6 +333,144 @@ function getFallbackFrequencies(track: AudioTrack) {
   if (track.id === "piano") return [261.63, 329.63, 392];
   if (track.id === "night") return [174, 220];
   return [110];
+}
+
+function getTrackVolume(track: AudioTrack, volume: number) {
+  if (track.tone === "music") return volume * 0.23;
+  if (track.id === "white") return volume * 0.2;
+  if (track.id === "brown" || track.id === "pink") return volume * 0.3;
+  return volume * 0.28;
+}
+
+function createAmbientTexture(
+  context: AudioContext,
+  destination: AudioNode,
+  track: AudioTrack,
+  nodes: AudioNode[],
+  cleanups: Array<() => void>
+) {
+  if (track.tone === "noise" || track.tone === "water" || track.tone === "room") {
+    const noise = createNoiseNode(context, track.id);
+    const filter = context.createBiquadFilter();
+    filter.type = track.id === "rain" ? "bandpass" : "lowpass";
+    filter.frequency.value = getNoiseFrequency(track);
+    filter.Q.value = track.id === "rain" ? 0.45 : 0.15;
+    const textureGain = context.createGain();
+    textureGain.gain.value = 0.92;
+
+    if (track.id === "ocean" || track.id === "night") {
+      const lfo = context.createOscillator();
+      const lfoGain = context.createGain();
+      lfo.type = "sine";
+      lfo.frequency.value = track.id === "ocean" ? 0.09 : 0.035;
+      lfoGain.gain.value = track.id === "ocean" ? 0.34 : 0.16;
+      textureGain.gain.value = track.id === "ocean" ? 0.64 : 0.5;
+      lfo.connect(lfoGain);
+      lfoGain.connect(textureGain.gain);
+      lfo.start();
+      nodes.push(lfo, lfoGain);
+      cleanups.push(() => lfo.stop());
+    }
+
+    noise.connect(filter);
+    filter.connect(textureGain);
+    textureGain.connect(destination);
+    nodes.push(noise, filter, textureGain);
+    cleanups.push(() => noise.stop());
+  }
+
+  getFallbackFrequencies(track).forEach((frequency, index) => {
+    const oscillator = context.createOscillator();
+    const localGain = context.createGain();
+    oscillator.type = track.id === "womb" ? "sine" : "triangle";
+    oscillator.frequency.value = frequency;
+    localGain.gain.value = track.tone === "hum" ? 0.06 / (index + 1) : 0.018 / (index + 1);
+    oscillator.connect(localGain);
+    localGain.connect(destination);
+    oscillator.start();
+    nodes.push(oscillator, localGain);
+    cleanups.push(() => oscillator.stop());
+  });
+}
+
+function createMusicLoop(
+  context: AudioContext,
+  destination: AudioNode,
+  trackId: AudioTrack["id"],
+  nodes: AudioNode[],
+  cleanups: Array<() => void>,
+  timers: number[]
+) {
+  const chords =
+    trackId === "piano"
+      ? [
+          [261.63, 329.63, 392],
+          [220, 277.18, 329.63],
+          [246.94, 293.66, 369.99],
+          [196, 246.94, 329.63]
+        ]
+      : [
+          [196, 246.94, 329.63],
+          [174.61, 220, 293.66],
+          [146.83, 196, 246.94],
+          [164.81, 207.65, 261.63]
+        ];
+
+  const chordGain = context.createGain();
+  const filter = context.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = trackId === "piano" ? 1150 : 780;
+  chordGain.gain.value = 0.001;
+  chordGain.connect(filter);
+  filter.connect(destination);
+  nodes.push(chordGain, filter);
+
+  let chordIndex = 0;
+  let activeOscillators: OscillatorNode[] = [];
+
+  const playChord = () => {
+    const now = context.currentTime;
+    activeOscillators.forEach((oscillator) => {
+      try {
+        oscillator.stop(now + 0.35);
+      } catch {
+        // The oscillator may already be stopped during rapid track changes.
+      }
+    });
+
+    chordGain.gain.cancelScheduledValues(now);
+    chordGain.gain.setTargetAtTime(0.001, now, 0.3);
+    chordGain.gain.setTargetAtTime(trackId === "piano" ? 0.24 : 0.32, now + 0.45, 1.1);
+
+    activeOscillators = chords[chordIndex].map((frequency, index) => {
+      const oscillator = context.createOscillator();
+      const voiceGain = context.createGain();
+      oscillator.type = trackId === "piano" ? "sine" : "triangle";
+      oscillator.frequency.value = frequency;
+      oscillator.detune.value = index === 1 ? 3 : index === 2 ? -4 : 0;
+      voiceGain.gain.value = trackId === "piano" ? 0.17 / (index + 1) : 0.12 / (index + 1);
+      oscillator.connect(voiceGain);
+      voiceGain.connect(chordGain);
+      oscillator.start(now);
+      nodes.push(oscillator, voiceGain);
+      return oscillator;
+    });
+
+    chordIndex = (chordIndex + 1) % chords.length;
+  };
+
+  playChord();
+  timers.push(window.setInterval(playChord, trackId === "piano" ? 5200 : 6400));
+  cleanups.push(() => activeOscillators.forEach((oscillator) => oscillator.stop()));
+}
+
+function getNoiseFrequency(track: AudioTrack) {
+  if (track.id === "brown") return 420;
+  if (track.id === "pink") return 920;
+  if (track.id === "rain") return 2400;
+  if (track.id === "ocean") return 1050;
+  if (track.id === "night") return 720;
+  return 2200;
 }
 
 function createNoiseNode(context: AudioContext, trackId: AudioTrack["id"]) {
