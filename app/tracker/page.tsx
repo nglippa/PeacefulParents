@@ -3,7 +3,7 @@
 import { FormEvent, useMemo, useState } from "react";
 import { Baby, Bed, Edit3, Milk, NotebookPen, Pill, Plus, Trash2 } from "lucide-react";
 import { Button, Card, EmptyState, Field, Input, Select, Textarea } from "@/components/ui";
-import { useDadMode } from "@/lib/store";
+import { usePeacefulParents } from "@/lib/store";
 import type { CareLog, CareLogInput, CareType } from "@/lib/types";
 import { careLabel, childName, formatTime, fromDatetimeLocal, getTodayLogs, toDatetimeLocal } from "@/lib/utils";
 
@@ -24,7 +24,7 @@ const defaults: Record<CareType, string> = {
 };
 
 export default function TrackerPage() {
-  const state = useDadMode();
+  const state = usePeacefulParents();
   const firstChild = state.children[0]?.id ?? "";
   const [editing, setEditing] = useState<CareLog | null>(null);
   const [form, setForm] = useState<CareLogInput>({
@@ -79,8 +79,8 @@ export default function TrackerPage() {
     <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
       <section className="grid gap-5 content-start">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.12em] text-[#f9735b]">Baby tracker</p>
-          <h1 className="mt-1 text-3xl font-black text-stone-950 dark:text-stone-50">Log care in seconds.</h1>
+          <p className="text-sm font-black uppercase tracking-[0.12em] pp-accent">Baby tracker</p>
+          <h1 className="mt-1 text-3xl font-black pp-ink">Log care in seconds.</h1>
         </div>
 
         <Card>
@@ -96,8 +96,8 @@ export default function TrackerPage() {
                     onClick={() => setType(item.type)}
                     className={`grid min-h-20 place-items-center rounded-2xl border text-center text-xs font-black transition ${
                       active
-                        ? "border-[#f9735b] bg-[#f9735b] text-white shadow-lift"
-                        : "border-stone-200 bg-stone-50 text-stone-600 hover:bg-stone-100 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-300"
+                        ? "border-[var(--pp-accent)] bg-[var(--pp-navy)] text-[#fff7e8] shadow-soft"
+                        : "border-stone-200 bg-stone-50 text-stone-600 hover:bg-stone-100  dark:bg-stone-900 dark:text-stone-300"
                     }`}
                   >
                     <Icon size={22} />
@@ -152,8 +152,8 @@ export default function TrackerPage() {
         <Card>
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-black uppercase tracking-[0.12em] text-[#f9735b]">Timeline</p>
-              <h2 className="text-xl font-black text-stone-950 dark:text-stone-50">Today</h2>
+              <p className="text-sm font-black uppercase tracking-[0.12em] pp-accent">Timeline</p>
+              <h2 className="text-xl font-black pp-ink">Today</h2>
             </div>
             <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-black text-stone-600 dark:bg-stone-800 dark:text-stone-200">{todayLogs.length} events</span>
           </div>
@@ -161,12 +161,12 @@ export default function TrackerPage() {
           <div className="grid gap-3">
             {todayLogs.length === 0 ? <EmptyState title="No logs today" body="Quick actions will appear here as soon as care is logged." /> : null}
             {todayLogs.map((log) => (
-              <article key={log.id} className="rounded-3xl border border-stone-100 bg-stone-50 p-4 dark:border-stone-800 dark:bg-stone-900">
+              <article key={log.id} className="rounded-3xl border border-[var(--pp-line)] bg-stone-50 p-4  dark:bg-stone-900">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-sm font-black uppercase tracking-[0.12em] text-stone-500 dark:text-stone-400">{formatTime(log.occurredAt)} - {childName(state, log.childId)}</p>
-                    <h3 className="mt-1 text-lg font-black text-stone-950 dark:text-stone-50">{careLabel(log.type)}: {log.detail}</h3>
-                    {log.notes ? <p className="mt-1 text-sm font-semibold text-stone-600 dark:text-stone-300">{log.notes}</p> : null}
+                    <p className="text-sm font-black uppercase tracking-[0.12em] pp-muted">{formatTime(log.occurredAt)} - {childName(state, log.childId)}</p>
+                    <h3 className="mt-1 text-lg font-black pp-ink">{careLabel(log.type)}: {log.detail}</h3>
+                    {log.notes ? <p className="mt-1 text-sm font-semibold pp-muted">{log.notes}</p> : null}
                   </div>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="sm" onClick={() => edit(log)} aria-label={`Edit ${log.detail}`}>

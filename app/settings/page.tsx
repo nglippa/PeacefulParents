@@ -1,13 +1,20 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { Edit3, Plus, RefreshCw, Save, Trash2, UserRoundPlus } from "lucide-react";
-import { Button, Card, Field, Input } from "@/components/ui";
-import { useDadMode } from "@/lib/store";
-import type { CaregiverProfile, ChildProfile } from "@/lib/types";
+import { CloudRain, Coffee, Edit3, Music2, Plus, RefreshCw, Save, Trash2, UserRoundPlus, Volume2, Waves } from "lucide-react";
+import { Button, Card, Field, Input, Select } from "@/components/ui";
+import { usePeacefulParents } from "@/lib/store";
+import type { AmbientSoundKey, CaregiverProfile, ChildProfile } from "@/lib/types";
+
+const soundOptions: Array<{ key: AmbientSoundKey; label: string; icon: typeof CloudRain }> = [
+  { key: "rain", label: "Soft rain", icon: CloudRain },
+  { key: "cafe", label: "Quiet cafe", icon: Coffee },
+  { key: "white-noise", label: "White noise", icon: Waves },
+  { key: "lofi", label: "Lo-fi beats", icon: Music2 }
+];
 
 export default function SettingsPage() {
-  const state = useDadMode();
+  const state = usePeacefulParents();
   const [childEditing, setChildEditing] = useState<ChildProfile | null>(null);
   const [caregiverEditing, setCaregiverEditing] = useState<CaregiverProfile | null>(null);
   const [childName, setChildName] = useState("");
@@ -52,12 +59,13 @@ export default function SettingsPage() {
     <div className="grid gap-5 lg:grid-cols-2">
       <section className="grid gap-5 content-start">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.12em] text-[#f9735b]">Settings</p>
-          <h1 className="mt-1 text-3xl font-black text-stone-950 dark:text-stone-50">Tune the household.</h1>
+          <p className="text-sm font-black uppercase tracking-[0.14em] pp-accent">Settings</p>
+          <h1 className="mt-1 text-3xl font-black pp-ink">Tune the calm.</h1>
+          <p className="mt-2 text-sm font-semibold leading-6 pp-muted">Quiet defaults for a house that is doing its best.</p>
         </div>
 
         <Card>
-          <h2 className="mb-3 text-lg font-black text-stone-950 dark:text-stone-50">Children</h2>
+          <h2 className="mb-3 text-lg font-black pp-ink">Children</h2>
           <form className="grid gap-3" onSubmit={submitChild}>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="Name">
@@ -73,10 +81,10 @@ export default function SettingsPage() {
           </form>
           <div className="mt-4 grid gap-2">
             {state.children.map((child) => (
-              <div key={child.id} className="flex items-center justify-between gap-3 rounded-2xl bg-stone-50 p-3 dark:bg-stone-900">
+              <div key={child.id} className="flex items-center justify-between gap-3 rounded-2xl pp-soft-surface p-3">
                 <div>
-                  <p className="font-black text-stone-950 dark:text-stone-50">{child.name}</p>
-                  <p className="text-sm font-bold text-stone-500 dark:text-stone-400">Born {child.birthDate}</p>
+                  <p className="font-black pp-ink">{child.name}</p>
+                  <p className="text-sm font-bold pp-muted">Born {child.birthDate}</p>
                 </div>
                 <div className="flex gap-1">
                   <Button variant="ghost" size="sm" onClick={() => editChild(child)} aria-label={`Edit ${child.name}`}>
@@ -92,7 +100,7 @@ export default function SettingsPage() {
         </Card>
 
         <Card>
-          <h2 className="mb-3 text-lg font-black text-stone-950 dark:text-stone-50">Caregivers</h2>
+          <h2 className="mb-3 text-lg font-black pp-ink">Caregivers</h2>
           <form className="grid gap-3" onSubmit={submitCaregiver}>
             <Field label="Name">
               <Input value={caregiverName} onChange={(event) => setCaregiverName(event.target.value)} placeholder="Parent A" required />
@@ -103,10 +111,10 @@ export default function SettingsPage() {
           </form>
           <div className="mt-4 grid gap-2">
             {state.caregivers.map((caregiver) => (
-              <div key={caregiver.id} className="flex items-center justify-between gap-3 rounded-2xl bg-stone-50 p-3 dark:bg-stone-900">
+              <div key={caregiver.id} className="flex items-center justify-between gap-3 rounded-2xl pp-soft-surface p-3">
                 <div className="flex items-center gap-3">
                   <span className="h-4 w-4 rounded-full" style={{ background: caregiver.color }} />
-                  <p className="font-black text-stone-950 dark:text-stone-50">{caregiver.name}</p>
+                  <p className="font-black pp-ink">{caregiver.name}</p>
                 </div>
                 <div className="flex gap-1">
                   <Button variant="ghost" size="sm" onClick={() => editCaregiver(caregiver)} aria-label={`Edit ${caregiver.name}`}>
@@ -124,7 +132,7 @@ export default function SettingsPage() {
 
       <section className="grid gap-5 content-start">
         <Card>
-          <h2 className="mb-3 text-lg font-black text-stone-950 dark:text-stone-50">Routine defaults</h2>
+          <h2 className="mb-3 text-lg font-black pp-ink">Routine defaults</h2>
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Feeding every hours">
               <Input
@@ -158,16 +166,67 @@ export default function SettingsPage() {
               />
             </Field>
           </div>
-          <div className="mt-4 flex items-center gap-2 rounded-2xl bg-emerald-50 p-3 text-sm font-bold text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-100">
+          <div className="mt-4 flex items-center gap-2 rounded-2xl bg-[#e2ece4] p-3 text-sm font-bold text-[#566d5d] dark:bg-[#2f4136] dark:text-[#c8ddcf]">
             <Save size={18} />
             Saved automatically on this device.
           </div>
         </Card>
 
         <Card>
-          <h2 className="mb-2 text-lg font-black text-stone-950 dark:text-stone-50">Local-first data</h2>
-          <p className="text-sm font-semibold leading-6 text-stone-600 dark:text-stone-300">
-            DadMode stores the MVP in localStorage. There is no account, backend, payment, or external API.
+          <h2 className="mb-2 text-lg font-black pp-ink">Ambient sound placeholders</h2>
+          <p className="mb-4 text-sm font-semibold leading-6 pp-muted">
+            Audio is not implemented yet. These settings prepare PeacefulParents for future rain, cafe, white noise, or lo-fi ambience.
+          </p>
+          <div className="grid gap-3">
+            <button
+              onClick={() => state.updateAmbientSound({ ...state.ambientSound, enabled: !state.ambientSound.enabled })}
+              className="pp-soft-surface flex min-h-14 items-center justify-between rounded-2xl px-4 text-left font-black transition hover:opacity-90"
+            >
+              <span className="flex items-center gap-2">
+                <Volume2 size={18} /> Ambient layer
+              </span>
+              <span className="rounded-full bg-[var(--pp-navy)] px-3 py-1 text-xs text-[#fff7e8]">
+                {state.ambientSound.enabled ? "Prepared" : "Off"}
+              </span>
+            </button>
+            <Field label="Preferred sound">
+              <Select
+                value={state.ambientSound.selected}
+                onChange={(event) => state.updateAmbientSound({ ...state.ambientSound, selected: event.target.value as AmbientSoundKey })}
+              >
+                {soundOptions.map((option) => (
+                  <option key={option.key} value={option.key}>
+                    {option.label}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field label={`Future volume: ${state.ambientSound.volume}%`}>
+              <Input
+                type="range"
+                min={0}
+                max={100}
+                value={state.ambientSound.volume}
+                onChange={(event) => state.updateAmbientSound({ ...state.ambientSound, volume: Number(event.target.value) })}
+              />
+            </Field>
+            <div className="grid grid-cols-2 gap-2">
+              {soundOptions.map((option) => {
+                const Icon = option.icon;
+                return (
+                  <div key={option.key} className="pp-soft-surface flex items-center gap-2 rounded-2xl p-3 text-sm font-black pp-muted">
+                    <Icon size={17} /> {option.label}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </Card>
+
+        <Card>
+          <h2 className="mb-2 text-lg font-black pp-ink">Local-first data</h2>
+          <p className="text-sm font-semibold leading-6 pp-muted">
+            PeacefulParents stores the MVP in localStorage. There is no account, backend, payment, or external API.
           </p>
           <Button className="mt-4 w-full" variant="secondary" onClick={() => state.resetDemoData()}>
             <RefreshCw size={18} /> Reset demo data

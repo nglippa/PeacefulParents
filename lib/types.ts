@@ -20,6 +20,25 @@ export type RoutineSettings = {
   bedtime: string;
 };
 
+export type AmbientSoundKey = "rain" | "cafe" | "white-noise" | "lofi";
+export type AudioTrackKind =
+  | "white"
+  | "brown"
+  | "pink"
+  | "rain"
+  | "ocean"
+  | "fan"
+  | "womb"
+  | "lofi"
+  | "piano"
+  | "night";
+
+export type AmbientSoundSettings = {
+  enabled: boolean;
+  selected: AmbientSoundKey;
+  volume: number;
+};
+
 export type CareLog = {
   id: string;
   childId: string;
@@ -59,7 +78,7 @@ export type SupplyItem = {
   checked: boolean;
 };
 
-export type DadModeState = {
+export type PeacefulParentsState = {
   children: ChildProfile[];
   caregivers: CaregiverProfile[];
   routines: RoutineSettings;
@@ -68,6 +87,7 @@ export type DadModeState = {
   turns: TurnItem[];
   supplies: SupplyItem[];
   darkMode: boolean;
+  ambientSound: AmbientSoundSettings;
 };
 
 export type CareLogInput = Omit<CareLog, "id">;

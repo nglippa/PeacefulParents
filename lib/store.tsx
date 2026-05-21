@@ -6,7 +6,8 @@ import type {
   CareLogInput,
   CaregiverProfile,
   ChildProfile,
-  DadModeState,
+  PeacefulParentsState,
+  AmbientSoundSettings,
   ParentId,
   RoutineSettings,
   SupplyInput,
@@ -17,9 +18,9 @@ import type {
   TurnItem
 } from "@/lib/types";
 
-const STORAGE_KEY = "dadmode-state-v1";
+const STORAGE_KEY = "peacefulparents-state-v1";
 
-type DadModeActions = {
+type PeacefulParentsActions = {
   ready: boolean;
   addCareLog: (input: CareLogInput) => void;
   updateCareLog: (id: string, input: CareLogInput) => void;
@@ -43,15 +44,16 @@ type DadModeActions = {
   updateCaregiver: (id: string, caregiver: Omit<CaregiverProfile, "id">) => void;
   deleteCaregiver: (id: string) => void;
   updateRoutines: (routines: RoutineSettings) => void;
+  updateAmbientSound: (settings: AmbientSoundSettings) => void;
   setDarkMode: (darkMode: boolean) => void;
   resetDemoData: () => void;
 };
 
-type DadModeContextValue = DadModeState & DadModeActions;
+type PeacefulParentsContextValue = PeacefulParentsState & PeacefulParentsActions;
 
-const DadModeContext = createContext<DadModeContextValue | null>(null);
+const PeacefulParentsContext = createContext<PeacefulParentsContextValue | null>(null);
 
-const parentColors = ["#f9735b", "#38bdf8", "#86d3be", "#f5b84b", "#a78bfa"];
+const parentColors = ["#7fa79a", "#8aa6bc", "#d0a36c", "#a99b87", "#9b8fa8"];
 
 function id(prefix: string) {
   return `${prefix}-${globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
@@ -71,10 +73,10 @@ function hoursFromNow(hours: number) {
   return new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
 }
 
-export function createInitialState(): DadModeState {
+export function createInitialState(): PeacefulParentsState {
   const caregivers: CaregiverProfile[] = [
-    { id: "parent-a", name: "Maya", color: "#f9735b" },
-    { id: "parent-b", name: "Jon", color: "#38bdf8" }
+    { id: "parent-a", name: "Maya", color: "#7fa79a" },
+    { id: "parent-b", name: "Jon", color: "#8aa6bc" }
   ];
   const children: ChildProfile[] = [{ id: "child-1", name: "Riley", birthDate: "2025-11-18" }];
 
@@ -82,6 +84,11 @@ export function createInitialState(): DadModeState {
     children,
     caregivers,
     darkMode: false,
+    ambientSound: {
+      enabled: false,
+      selected: "rain",
+      volume: 30
+    },
     routines: {
       feedingEveryHours: 3,
       napWindowHours: 2,
@@ -164,15 +171,25 @@ function getNextCaregiverId(caregivers: CaregiverProfile[], currentId: ParentId)
   return caregivers[(index + 1 + caregivers.length) % caregivers.length]?.id ?? currentId;
 }
 
-export function DadModeProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<DadModeState>(() => createInitialState());
+function hydrateState(saved: PeacefulParentsState): PeacefulParentsState {
+  const defaults = createInitialState();
+  return {
+    ...defaults,
+    ...saved,
+    routines: { ...defaults.routines, ...saved.routines },
+    ambientSound: { ...defaults.ambientSound, ...saved.ambientSound }
+  };
+}
+
+export function PeacefulParentsProvider({ children }: { children: React.ReactNode }) {
+  const [state, setState] = useState<PeacefulParentsState>(() => createInitialState());
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const saved = window.localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        setState(JSON.parse(saved) as DadModeState);
+        setState(hydrateState(JSON.parse(saved) as PeacefulParentsState));
       } catch {
         setState(createInitialState());
       }
@@ -190,7 +207,7 @@ export function DadModeProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.classList.toggle("dark", state.darkMode);
   }, [state.darkMode]);
 
-  const actions = useMemo<DadModeActions>(
+  const actions = useMemo<PeacefulParentsActions>(
     () => ({
       ready,
       addCareLog: (input) => setState((current) => ({ ...current, careLogs: [{ ...input, id: id("log") }, ...current.careLogs] })),
@@ -298,6 +315,7 @@ export function DadModeProvider({ children }: { children: React.ReactNode }) {
           };
         }),
       updateRoutines: (routines) => setState((current) => ({ ...current, routines })),
+      updateAmbientSound: (ambientSound) => setState((current) => ({ ...current, ambientSound })),
       setDarkMode: (darkMode) => setState((current) => ({ ...current, darkMode })),
       resetDemoData: () => setState(createInitialState())
     }),
@@ -306,18 +324,18 @@ export function DadModeProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo(() => ({ ...state, ...actions }), [state, actions]);
 
-  return <DadModeContext.Provider value={value}>{children}</DadModeContext.Provider>;
+  return <PeacefulParentsContext.Provider value={value}>{children}</PeacefulParentsContext.Provider>;
 }
 
-export function useDadMode() {
-  const context = useContext(DadModeContext);
+export function usePeacefulParents() {
+  const context = useContext(PeacefulParentsContext);
   if (!context) {
-    throw new Error("useDadMode must be used inside DadModeProvider");
+    throw new Error("usePeacefulParents must be used inside PeacefulParentsProvider");
   }
   return context;
 }
 
 export function useCaregiverName(id: ParentId) {
-  const { caregivers } = useDadMode();
+  const { caregivers } = usePeacefulParents();
   return useCallback(() => caregivers.find((caregiver) => caregiver.id === id)?.name ?? "Someone", [caregivers, id]);
 }

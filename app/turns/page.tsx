@@ -3,12 +3,12 @@
 import { FormEvent, useState } from "react";
 import { CheckCircle2, Edit3, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { Button, Card, Field, Input, Pill, Select } from "@/components/ui";
-import { useDadMode } from "@/lib/store";
+import { usePeacefulParents } from "@/lib/store";
 import type { TurnInput, TurnItem } from "@/lib/types";
 import { caregiverName, formatShortDate, formatTime } from "@/lib/utils";
 
 export default function TurnsPage() {
-  const state = useDadMode();
+  const state = usePeacefulParents();
   const [editing, setEditing] = useState<TurnItem | null>(null);
   const [form, setForm] = useState<TurnInput>({
     title: "",
@@ -39,8 +39,8 @@ export default function TurnsPage() {
     <div className="grid gap-5 lg:grid-cols-[0.82fr_1.18fr]">
       <section className="grid gap-5 content-start">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.12em] text-[#f9735b]">Whose turn</p>
-          <h1 className="mt-1 text-3xl font-black text-stone-950 dark:text-stone-50">Fair without math.</h1>
+          <p className="text-sm font-black uppercase tracking-[0.12em] pp-accent">Whose turn</p>
+          <h1 className="mt-1 text-3xl font-black pp-ink">Fair without math.</h1>
         </div>
 
         <Card>
@@ -77,10 +77,10 @@ export default function TurnsPage() {
             <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-xl font-black text-stone-950 dark:text-stone-50">{turn.title}</h2>
+                  <h2 className="text-xl font-black pp-ink">{turn.title}</h2>
                   <Pill className="bg-[#fff1de] text-amber-800 dark:bg-amber-950/50 dark:text-amber-100">{turn.completedCount} done</Pill>
                 </div>
-                <p className="mt-1 text-sm font-bold text-stone-500 dark:text-stone-400">
+                <p className="mt-1 text-sm font-bold pp-muted">
                   Up now: <span className="text-stone-900 dark:text-stone-100">{caregiverName(state, turn.currentCaregiverId)}</span>
                   {turn.lastCompletedAt ? ` - last completed ${formatShortDate(turn.lastCompletedAt)} at ${formatTime(turn.lastCompletedAt)}` : ""}
                 </p>
@@ -102,13 +102,13 @@ export default function TurnsPage() {
 
         <Card className="bg-[#86d3be]/18 dark:bg-emerald-950/20">
           <div className="flex gap-3">
-            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#86d3be] text-stone-950">
+            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#dfe9df] text-[#526f62] dark:bg-[#2e4038] dark:text-[#c3d6c8]">
               <RotateCcw size={22} />
             </div>
             <div>
-              <h2 className="font-black text-stone-950 dark:text-stone-50">How rotation works</h2>
-              <p className="mt-1 text-sm font-semibold text-stone-600 dark:text-stone-300">
-                Tap Done after a responsibility is handled. DadMode moves it to the next caregiver automatically and keeps the count.
+              <h2 className="font-black pp-ink">How rotation works</h2>
+              <p className="mt-1 text-sm font-semibold pp-muted">
+                Tap Done after a responsibility is handled. PeacefulParents moves it to the next caregiver automatically and keeps the count.
               </p>
             </div>
           </div>

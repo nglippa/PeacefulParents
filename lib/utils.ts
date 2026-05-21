@@ -1,5 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
-import type { CareLog, CareType, DadModeState, Task } from "@/lib/types";
+import type { CareLog, CareType, PeacefulParentsState, Task } from "@/lib/types";
 
 export function cn(...inputs: ClassValue[]) {
   return clsx(inputs);
@@ -38,7 +38,7 @@ export function relativeDue(value: string) {
   const minutes = minutesUntil(value);
   const abs = Math.abs(minutes);
   const amount = abs < 60 ? `${abs}m` : `${Math.round(abs / 60)}h`;
-  if (minutes < -1) return `${amount} overdue`;
+  if (minutes < -1) return `${amount} waiting`;
   if (minutes <= 1) return "now";
   return `in ${amount}`;
 }
@@ -56,11 +56,11 @@ export function careLabel(type: CareType) {
 
 export function careAccent(type: CareType) {
   const accents: Record<CareType, string> = {
-    feeding: "bg-rose-50 text-rose-700",
-    diaper: "bg-sky-50 text-sky-700",
-    sleep: "bg-violet-50 text-violet-700",
-    medicine: "bg-emerald-50 text-emerald-700",
-    note: "bg-amber-50 text-amber-700"
+    feeding: "bg-[#f0e5d7] text-[#765f4c] dark:bg-[#4c3b32] dark:text-[#ead7c2]",
+    diaper: "bg-[#e1ebef] text-[#536a75] dark:bg-[#303f47] dark:text-[#c7d8df]",
+    sleep: "bg-[#e7e5ef] text-[#625e76] dark:bg-[#373445] dark:text-[#d7d2e8]",
+    medicine: "bg-[#e2ece4] text-[#566d5d] dark:bg-[#2f4136] dark:text-[#c8ddcf]",
+    note: "bg-[#f2ead7] text-[#78664a] dark:bg-[#443b2c] dark:text-[#eadfca]"
   };
   return accents[type];
 }
@@ -75,7 +75,7 @@ export function getTodayLogs(logs: CareLog[]) {
     .sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime());
 }
 
-export function getNextItems(state: DadModeState) {
+export function getNextItems(state: PeacefulParentsState) {
   const openTasks = state.tasks.filter((task) => !task.completed).sort((a, b) => +new Date(a.dueAt) - +new Date(b.dueAt));
   const latestFeed = state.careLogs
     .filter((log) => log.type === "feeding")
@@ -109,10 +109,10 @@ export function getNextItems(state: DadModeState) {
   return predicted.sort((a, b) => +new Date(a.at) - +new Date(b.at));
 }
 
-export function childName(state: DadModeState, childId: string) {
+export function childName(state: PeacefulParentsState, childId: string) {
   return state.children.find((child) => child.id === childId)?.name ?? "Child";
 }
 
-export function caregiverName(state: Pick<DadModeState, "caregivers">, caregiverId: string) {
+export function caregiverName(state: Pick<PeacefulParentsState, "caregivers">, caregiverId: string) {
   return state.caregivers.find((caregiver) => caregiver.id === caregiverId)?.name ?? "Someone";
 }

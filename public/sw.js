@@ -1,5 +1,5 @@
-const CACHE_NAME = "dadmode-v1";
-const APP_SHELL = ["/", "/dashboard", "/tracker", "/tasks", "/turns", "/supplies", "/settings", "/manifest.json", "/icon.svg"];
+const CACHE_NAME = "peacefulparents-v1";
+const APP_SHELL = ["/", "/dashboard", "/tracker", "/tasks", "/turns", "/audio", "/supplies", "/settings", "/manifest.json", "/icon.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));

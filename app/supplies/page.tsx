@@ -3,13 +3,13 @@
 import { FormEvent, useMemo, useState } from "react";
 import { Check, Edit3, Plus, ShoppingBasket, Trash2 } from "lucide-react";
 import { Button, Card, EmptyState, Field, Input, Pill, Select } from "@/components/ui";
-import { useDadMode } from "@/lib/store";
+import { usePeacefulParents } from "@/lib/store";
 import type { SupplyCategory, SupplyInput, SupplyItem } from "@/lib/types";
 
 const categories: SupplyCategory[] = ["diapers", "wipes", "formula", "food", "household"];
 
 export default function SuppliesPage() {
-  const state = useDadMode();
+  const state = usePeacefulParents();
   const [editing, setEditing] = useState<SupplyItem | null>(null);
   const [form, setForm] = useState<SupplyInput>({
     name: "",
@@ -57,8 +57,8 @@ export default function SuppliesPage() {
     <div className="grid gap-5 lg:grid-cols-[0.82fr_1.18fr]">
       <section className="grid gap-5 content-start">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.12em] text-[#f9735b]">Supplies</p>
-          <h1 className="mt-1 text-3xl font-black text-stone-950 dark:text-stone-50">Know before empty.</h1>
+          <p className="text-sm font-black uppercase tracking-[0.12em] pp-accent">Supplies</p>
+          <h1 className="mt-1 text-3xl font-black pp-ink">Know before empty.</h1>
         </div>
 
         <Card>
@@ -96,14 +96,14 @@ export default function SuppliesPage() {
           </form>
         </Card>
 
-        <Card className={lowCount ? "bg-rose-50 dark:bg-rose-950/30" : "bg-emerald-50 dark:bg-emerald-950/20"}>
+        <Card className={lowCount ? "bg-[#f0e5d7]/70 dark:bg-[#4c3b32]/45" : "bg-[#e2ece4]/70 dark:bg-[#2f4136]/45"}>
           <div className="flex items-center gap-3">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white text-[#f9735b] shadow-sm dark:bg-stone-900">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[rgba(255,250,240,0.62)] pp-accent shadow-sm dark:bg-[rgba(255,244,224,0.08)]">
               <ShoppingBasket size={23} />
             </div>
             <div>
-              <p className="text-2xl font-black text-stone-950 dark:text-stone-50">{lowCount} low-supply reminders</p>
-              <p className="text-sm font-semibold text-stone-600 dark:text-stone-300">Quantities are local and stay after refresh.</p>
+              <p className="text-2xl font-black pp-ink">{lowCount} low-supply reminders</p>
+              <p className="text-sm font-semibold pp-muted">Quantities are local and stay after refresh.</p>
             </div>
           </div>
         </Card>
@@ -115,20 +115,20 @@ export default function SuppliesPage() {
           items.length ? (
             <Card key={category}>
               <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-lg font-black capitalize text-stone-950 dark:text-stone-50">{category}</h2>
+                <h2 className="text-lg font-black capitalize pp-ink">{category}</h2>
                 <Pill className="bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-200">{items.length} items</Pill>
               </div>
               <div className="grid gap-2">
                 {items.map((item) => {
                   const low = item.quantity <= item.threshold;
                   return (
-                    <div key={item.id} className="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl bg-stone-50 p-3 dark:bg-stone-900">
+                    <div key={item.id} className="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl pp-soft-surface p-3">
                       <button
                         onClick={() => state.toggleSupply(item.id)}
                         className={`grid h-10 w-10 place-items-center rounded-2xl border-2 ${
                           item.checked
-                            ? "border-emerald-500 bg-emerald-500 text-white"
-                            : "border-stone-200 bg-white text-stone-400 dark:border-stone-700 dark:bg-stone-950"
+                            ? "border-[#7fa79a] bg-[#7fa79a] text-[#fff7e8]"
+                            : "border-[var(--pp-line)] bg-[rgba(255,250,240,0.54)] text-[var(--pp-muted)] dark:bg-[rgba(255,244,224,0.06)]"
                         }`}
                         aria-label={item.checked ? "Uncheck item" : "Check item"}
                       >
@@ -136,10 +136,10 @@ export default function SuppliesPage() {
                       </button>
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className={`font-black text-stone-950 dark:text-stone-50 ${item.checked ? "line-through" : ""}`}>{item.name}</p>
-                          {low ? <Pill className="bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-100">Low</Pill> : null}
+                          <p className={`font-black pp-ink ${item.checked ? "line-through" : ""}`}>{item.name}</p>
+                          {low ? <Pill className="bg-[#f0e5d7] text-[#765f4c] dark:bg-[#4c3b32] dark:text-[#ead7c2]">Replenish soon</Pill> : null}
                         </div>
-                        <p className="text-sm font-bold text-stone-500 dark:text-stone-400">{item.quantity} left - remind at {item.threshold}</p>
+                        <p className="text-sm font-bold pp-muted">{item.quantity} left - remind at {item.threshold}</p>
                       </div>
                       <div className="flex gap-1">
                         <Button variant="ghost" size="sm" onClick={() => edit(item)} aria-label={`Edit ${item.name}`}>

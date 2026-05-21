@@ -1,6 +1,6 @@
 {
-  "name": "DadMode",
-  "short_name": "DadMode",
+  "name": "PeacefulParents",
+  "short_name": "PeacefulParents",
   "description": "A calm family command center for tired parents.",
   "start_url": "/dashboard",
   "scope": "/",

@@ -3,12 +3,12 @@
 import { FormEvent, useMemo, useState } from "react";
 import { Check, Edit3, Plus, Trash2 } from "lucide-react";
 import { Button, Card, EmptyState, Field, Input, Pill, Select } from "@/components/ui";
-import { useDadMode } from "@/lib/store";
+import { usePeacefulParents } from "@/lib/store";
 import type { Task, TaskInput } from "@/lib/types";
 import { caregiverName, formatTime, fromDatetimeLocal, isOverdue, relativeDue, toDatetimeLocal } from "@/lib/utils";
 
 export default function TasksPage() {
-  const state = useDadMode();
+  const state = usePeacefulParents();
   const [editing, setEditing] = useState<Task | null>(null);
   const [form, setForm] = useState<TaskInput>({
     title: "",
@@ -56,8 +56,8 @@ export default function TasksPage() {
     <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
       <section className="grid gap-5 content-start">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.12em] text-[#f9735b]">Shared board</p>
-          <h1 className="mt-1 text-3xl font-black text-stone-950 dark:text-stone-50">Tiny tasks, clear owners.</h1>
+          <p className="text-sm font-black uppercase tracking-[0.12em] pp-accent">Shared board</p>
+          <h1 className="mt-1 text-3xl font-black pp-ink">Tiny tasks, clear owners.</h1>
         </div>
 
         <Card>
@@ -116,8 +116,8 @@ export default function TasksPage() {
                 onClick={() => state.toggleTask(task.id)}
                 className={`mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-2xl border-2 transition ${
                   task.completed
-                    ? "border-emerald-500 bg-emerald-500 text-white"
-                    : "border-stone-200 bg-white text-stone-400 dark:border-stone-700 dark:bg-stone-900"
+                    ? "border-[#7fa79a] bg-[#7fa79a] text-[#fff7e8]"
+                    : "border-[var(--pp-line)] bg-[rgba(255,250,240,0.54)] text-[var(--pp-muted)] dark:bg-[rgba(255,244,224,0.06)]"
                 }`}
                 aria-label={task.completed ? "Mark task incomplete" : "Complete task"}
               >
@@ -125,11 +125,11 @@ export default function TasksPage() {
               </button>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h2 className={`text-lg font-black text-stone-950 dark:text-stone-50 ${task.completed ? "line-through" : ""}`}>{task.title}</h2>
-                  {isOverdue(task) ? <Pill className="bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-100">Overdue</Pill> : null}
+                  <h2 className={`text-lg font-black pp-ink ${task.completed ? "line-through" : ""}`}>{task.title}</h2>
+                  {isOverdue(task) ? <Pill className="bg-[#f0e5d7] text-[#765f4c] dark:bg-[#4c3b32] dark:text-[#ead7c2]">Still waiting</Pill> : null}
                   {task.recurring !== "none" ? <Pill className="bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-100">{task.recurring}</Pill> : null}
                 </div>
-                <p className="mt-1 text-sm font-bold text-stone-500 dark:text-stone-400">
+                <p className="mt-1 text-sm font-bold pp-muted">
                   {caregiverName(state, task.assignedTo)} - {formatTime(task.dueAt)} - {relativeDue(task.dueAt)}
                 </p>
               </div>
